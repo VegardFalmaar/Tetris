@@ -1,4 +1,5 @@
 import time
+import os
 from random import randint
 from collections import namedtuple
 
@@ -76,7 +77,7 @@ def draw_board(b, clear_screen=False):
         lines.append(''.join(characters[line]))
     text = '\n'.join(lines)
     if clear_screen:
-        print('\b'*len(text))
+        os.system('clear')
     print(text)
 
 
@@ -100,6 +101,10 @@ board_size = Size(18, 16)
 characters = np.array(list(' ABCDEFG=#'))
 
 
+def print_score(n: int):
+    print(f'\n\nScore: {n}')
+
+
 def main():
     N_types = len(characters)
 
@@ -117,10 +122,13 @@ def main():
     rotation = 0
     key_pressed = False
     draw_board(board)
+    score = 0
+    print_score(score)
 
     while True:
         time.sleep(0.1)
         draw_board(board + piece_array(piece_index, pos_x, pos_y, rotation), clear_screen=True)
+        print_score(score)
 
         if keyboard.is_pressed('left') and not key_pressed:
             key_pressed = True
@@ -144,9 +152,12 @@ def main():
         if N_ticks_since_step % N_ticks_per_step == 0:
             pos_y += 1
             mask = np.any(board == N_types - 2, axis=1)
-            for i, e in enumerate(mask):
-                if e:
-                    board[1:i + 1] = board[:i]
+            if np.any(mask):
+                n = sum(mask)
+                score += 10 * n * (n + 1) // 2
+                for i, e in enumerate(mask):
+                    if e:
+                        board[1:i + 1] = board[:i]
             if N_ticks_since_step // N_ticks_per_step == 10:
                 N_ticks_since_step = 0
                 N_ticks_per_step = max(N_ticks_per_step - 1, 5)
